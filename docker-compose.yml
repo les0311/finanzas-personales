@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # Base de datos MongoDB
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb_finanzas
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=finanzas
+    networks:
+      - finanzas-network
+
+  # Backend Node.js + Express
+  backend:
+    build: ./backend
+    container_name: backend_finanzas
+    ports:
+      - "3001:3001"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/finanzas
+      - PORT=3001
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      - mongodb
+    networks:
+      - finanzas-network
+    restart: unless-stopped
+
+  # Frontend React + Vite
+  frontend:
+    build: ./frontend
+    container_name: frontend_finanzas
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - finanzas-network
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
+
+networks:
+  finanzas-network:
+    driver: bridge
