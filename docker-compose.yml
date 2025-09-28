@@ -9,8 +9,9 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+      - ./db/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
     environment:
-      - MONGO_INITDB_DATABASE=finanzas
+      MONGO_INITDB_DATABASE: finanzas
     networks:
       - finanzas-network
 
