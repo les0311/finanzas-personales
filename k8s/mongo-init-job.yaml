@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-init-script
+data:
+  init-mongo.js: |
+    db = db.getSiblingDB('finanzas');
+
+    db.categories.insertMany([
+      { name: "Salario", type: "income" },
+      { name: "Venta", type: "income" },
+      { name: "Comida", type: "expense" },
+      { name: "Transporte", type: "expense" },
+      { name: "Educación", type: "expense" }
+    ]);
+
+    db.transactions.insertMany([
+      {
+        description: "Pago mensual",
+        amount: 1500,
+        type: "income",
+        category: "Salario",
+        date: new Date()
+      },
+      {
+        description: "Almuerzo",
+        amount: 20,
+        type: "expense",
+        category: "Comida",
+        date: new Date()
+      },
+      {
+        description: "Pasajes",
+        amount: 10,
+        type: "expense",
+        category: "Transporte",
+        date: new Date()
+      }
+    ]);
+
+    print("✅ Base de datos 'finanzas' inicializada");
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mongo-init-job
+spec:
+  template:
+    spec:
+      containers:
+        - name: mongo-init
+          image: mongo:6.0
+          command:
+            - sh
+            - -c
+            - >
+              sleep 5;
+              mongosh --host mongo-0.mongo-headless:27017 /docker-entrypoint-initdb.d/init-mongo.js || true
+          volumeMounts:
+            - name: init-script
+              mountPath: /docker-entrypoint-initdb.d
+      restartPolicy: OnFailure
+      volumes:
+        - name: init-script
+          configMap:
+            name: mongo-init-script
