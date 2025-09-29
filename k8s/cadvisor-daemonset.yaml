@@ -17,7 +17,7 @@ spec:
       hostNetwork: false
       containers:
         - name: cadvisor
-          image: gcr.io/google-containers/cadvisor:latest
+          image: gcr.io/cadvisor/cadvisor:latest
           securityContext:
             runAsUser: 0
           volumeMounts:

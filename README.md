@@ -56,7 +56,7 @@ docker build -t leslym03/finanzas-frontend:latest ./frontend
 kind load docker-image leslym03/finanzas-backend:latest --name finanzas
 kind load docker-image leslym03/finanzas-frontend:latest --name finanzas
 ```
-
+```
 docker build -t leslym03/finanzas-frontend:latest \
   --build-arg VITE_API_URL=http://localhost:3001/api ./frontend
 docker push leslym03/finanzas-backend:latest
@@ -73,7 +73,7 @@ kubectl port-forward svc/frontend-svc 30739:80
 kubectl get svc backend-svc
 kubectl port-forward svc/backend-svc 3001:31431
 http://localhost:31431/api/transactions
-
+```
 
 
 
@@ -182,28 +182,3 @@ Explicación: HPA usa métricas (Metrics Server) para decidir si escalar; esto d
 
 - **cAdvisor:** herramienta clásica para recolectar métricas a nivel de contenedor (CPU, memoria, I/O). El artículo original menciona cAdvisor como ejemplo de herramienta que permite registrar y usar métricas genéricas para autoscaling y monitoreo. Usándola demuestras observabilidad y que entiendes la conexión entre métricas y escalado. 
 
-
-## Informe
-
-- Diagramita de arquitectura (Frontend → Backend → Mongo, StorageClass, HPA).
-
-- Link al repo con k8s/ y tus manifiestos.
-
-- Comando exacto que usaste para crear el clúster (el kind create cluster ...) y para cargar imágenes.
-
-- Comandos y capturas (logs/screenshots) de:
-
-- kubectl get pods, kubectl get pvc, kubectl get hpa.
-
-- Prueba de carga donde HPA escala (gif/screenshot de kubectl get deployment backend antes y durante la carga).
-
-- Prueba de persistencia: eliminar pod de Mongo y luego db.transactions.find() mostrando datos.
-
-- Explicación breve (2 párrafos) de por qué usaste Metrics Server y cAdvisor y cómo estas herramientas apoyan la autoscalabilidad y observabilidad (cita el artículo).
-
-
-
-
-```
-
-```
