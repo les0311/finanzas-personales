@@ -1,0 +1,24 @@
+{
+  "name": "pulumi-eks-autoscale",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "build": "tsc",
+    "up": "pulumi up",
+    "destroy": "pulumi destroy --yes",
+    "preview": "pulumi preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "description": "",
+  "dependencies": {
+    "@pulumi/aws": "^6.0.0",
+    "@pulumi/awsx": "^2.0.0",
+    "@pulumi/docker": "^4.0.0",
+    "@pulumi/eks": "^1.0.0",
+    "@pulumi/kubernetes": "^4.0.0",
+    "@pulumi/pulumi": "^3.0.0",
+    "typescript": "^5.3.0"
+  }
+}

@@ -177,8 +177,18 @@ Explicación: HPA usa métricas (Metrics Server) para decidir si escalar; esto d
 
 - kubectl top pods + kubectl top nodes.
 
-## ¿Porque 2 herramientas?
+### ¿Porque 2 herramientas?
 - **Metrics Server:** necesario para habilitar HPA (Horizontal Pod Autoscaler). Permite recolectar métricas de CPU/memoria a nivel de pod, que HPA usa para tomar decisiones de escalado automático. Esta idea entra en la línea de “usar métricas de cgroups y contenedores para autoscaling” discutida en el artículo. 
 
 - **cAdvisor:** herramienta clásica para recolectar métricas a nivel de contenedor (CPU, memoria, I/O). El artículo original menciona cAdvisor como ejemplo de herramienta que permite registrar y usar métricas genéricas para autoscaling y monitoreo. Usándola demuestras observabilidad y que entiendes la conexión entre métricas y escalado. 
 
+
+## Pulumi y AWS
+
+```
+mkdir pulumi-eks-autoscale
+cd pulumi-eks-autoscale
+npm init -y
+npm install @pulumi/pulumi @pulumi/aws @pulumi/eks @pulumi/docker @pulumi/kubernetes @pulumi/awsx typescript
+pulumi new aws-typescript   # sigue prompts (o pulumi stack init)
+```
