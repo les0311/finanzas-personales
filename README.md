@@ -191,4 +191,53 @@ cd pulumi-eks-autoscale
 npm init -y
 npm install @pulumi/pulumi @pulumi/aws @pulumi/eks @pulumi/docker @pulumi/kubernetes @pulumi/awsx typescript
 pulumi new aws-typescript   # sigue prompts (o pulumi stack init)
+
+
+
+
+
+
+
+
+pulumi stack select dev
+pulumi config set aws:region us-east-1 
+pulumi up --yes
+
 ```
+
+### Variables 
+```
+REGION=us-east-1
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+BACKEND_REPO="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/finanzas-backend:dev"
+FRONTEND_REPO="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/finanzas-frontend:dev"
+
+
+echo $REGION
+echo $ACCOUNT_ID
+echo $FRONTEND_REPO
+echo $BACKEND_REPO
+```
+
+### Build
+```
+cd ../finanzas-personales/backend
+docker build -t finanzas-backend:dev .
+docker tag finanzas-backend:dev $BACKEND_REPO
+docker push $BACKEND_REPO
+
+cd ../finanzas-personales/frontend
+docker build -t finanzas-frontend:dev .
+docker tag finanzas-frontend:dev $FRONTEND_REPO
+docker push $FRONTEND_REPO
+
+
+
+pulumi config set backendImage $BACKEND_IMAGE --stack dev
+pulumi config set frontendImage $FRONTEND_IMAGE --stack dev
+pulumi up --yes
+
+```
+
+
+
