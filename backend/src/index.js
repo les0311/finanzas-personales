@@ -1,18 +1,27 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config();
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const MONGODB_URI = process.env.MONGODB_URI;
 
-app.use(cors());
+app.use(cors({ origin: '*' })); // o limitar a tu dominio frontend
 app.use(express.json());
 
-// Conectar a MongoDB
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Conectado a MongoDB'))
-  .catch(err => console.error('Error conectando a MongoDB:', err));
+// ✅ Conexión MongoDB
+mongoose.connect(MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log('✅ Conectado a MongoDB'))
+.catch(err => {
+  console.error('❌ Error conectando a MongoDB:', err);
+  process.exit(1);
+});
 
 // Esquema y modelo para transacciones
 const transactionSchema = new mongoose.Schema({
@@ -61,38 +70,32 @@ app.get('/api/transactions/balance', async (req, res) => {
 
 // Agregar transacción
 app.post('/api/transactions', async (req, res) => {
-  const { description, amount, type, category, date } = req.body;
-  const transaction = new Transaction({ description, amount, type, category, date });
   try {
-    const saved = await transaction.save();
+    const t = new Transaction(req.body);
+    const saved = await t.save();
     res.status(201).json(saved);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 });
 
 // Actualizar transacción
 app.put('/api/transactions/:id', async (req, res) => {
   try {
-    const transaction = await Transaction.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
-    res.json(transaction);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
+    const updated = await Transaction.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(updated);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 });
-
 
 // Eliminar transacción
 app.delete('/api/transactions/:id', async (req, res) => {
   try {
     await Transaction.findByIdAndDelete(req.params.id);
     res.json({ message: 'Transacción eliminada' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 
@@ -105,8 +108,8 @@ app.get('/api/categories/:type', async (req, res) => {
   try {
     const categories = await Category.find({ type }).sort({ name: 1 });
     res.json(categories);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 
@@ -119,12 +122,11 @@ app.post('/api/categories', async (req, res) => {
   try {
     const exists = await Category.findOne({ name, type });
     if (exists) return res.status(400).json({ message: 'Categoría ya existe' });
-
     const category = new Category({ name, type });
     const saved = await category.save();
     res.status(201).json(saved);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 
@@ -157,6 +159,7 @@ app.delete('/api/categories/:id', async (req, res) => {
 });
 
 
-app.listen(PORT,'0.0.0.0', () => {
-  console.log(`Servidor backend escuchando en http://localhost:${PORT}`);
+// --- Inicio del servidor ---
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Servidor backend escuchando en puerto ${PORT}`);
 });

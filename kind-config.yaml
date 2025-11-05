@@ -1,7 +1,33 @@
-# kind-config.yaml
+# kind.config.yaml
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
+name: finanzas-local
 nodes:
   - role: control-plane
+    extraPortMappings:
+      - containerPort: 80      # Para frontend (LoadBalancer simulado)
+        hostPort: 8080
+        protocol: TCP
+      - containerPort: 3001    # Para backend
+        hostPort: 3001
+        protocol: TCP
   - role: worker
   - role: worker
+kubeadmConfigPatches:
+  - |
+    kind: ClusterConfiguration
+    metadata:
+      name: config
+    apiServer:
+      extraArgs:
+        "service-node-port-range": "30000-32767"
+  - |
+    kind: KubeletConfiguration
+    metadata:
+      name: config
+    kubeReserved:
+      cpu: "100m"
+      memory: "100Mi"
+    systemReserved:
+      cpu: "100m"
+      memory: "100Mi"

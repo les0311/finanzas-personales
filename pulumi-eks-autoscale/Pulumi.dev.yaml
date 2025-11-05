@@ -1,4 +1,2 @@
 config:
-  aws:region: us-east-1
-  finanzas-autoscale:backendImage: 564912843511.dkr.ecr.us-east-1.amazonaws.com/finanzas-frontend:dev
-  finanzas-autoscale:frontendImage: 564912843511.dkr.ecr.us-east-1.amazonaws.com/finanzas-frontend:dev
+  finanzas-autoscale:buildImages: "false"

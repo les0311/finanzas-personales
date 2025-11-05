@@ -38,28 +38,39 @@ data:
       }
     ]);
 
-    print("✅ Base de datos 'finanzas' inicializada");
+    print("✅ Base de datos 'finanzas' inicializada correctamente.");
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: mongo-init-job
 spec:
+  backoffLimit: 3
   template:
     spec:
+      restartPolicy: OnFailure
       containers:
         - name: mongo-init
           image: mongo:6.0
           command:
             - sh
             - -c
-            - >
-              sleep 5;
-              mongosh --host mongo-0.mongo-headless:27017 /docker-entrypoint-initdb.d/init-mongo.js || true
+            - |
+              echo "Esperando a que MongoDB esté listo...";
+              for i in $(seq 1 30); do
+                if mongosh --host mongodb:27017 --eval "db.adminCommand('ping')" >/dev/null 2>&1; then
+                  echo "✅ MongoDB disponible, ejecutando script de inicialización...";
+                  mongosh --host mongodb:27017 --file /docker-entrypoint-initdb.d/init-mongo.js;
+                  exit 0;
+                fi;
+                echo "⏳ Esperando a MongoDB ($i/30)...";
+                sleep 5;
+              done;
+              echo "❌ MongoDB no respondió a tiempo.";
+              exit 1;
           volumeMounts:
             - name: init-script
               mountPath: /docker-entrypoint-initdb.d
-      restartPolicy: OnFailure
       volumes:
         - name: init-script
           configMap:

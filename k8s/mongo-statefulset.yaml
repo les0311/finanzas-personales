@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: mongo-headless
+  name: mongodb
   labels:
     app: finanzas-mongo
 spec:
@@ -15,9 +15,11 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: mongo
+  name: mongodb
+  labels:
+    app: finanzas-mongo
 spec:
-  serviceName: mongo-headless
+  serviceName: mongodb
   replicas: 1
   selector:
     matchLabels:
@@ -27,24 +29,42 @@ spec:
       labels:
         app: finanzas-mongo
     spec:
+      securityContext:
+        fsGroup: 999
+        runAsUser: 999
       containers:
         - name: mongo
           image: mongo:6.0
           ports:
             - containerPort: 27017
-          volumeMounts:
-            - name: mongo-data
-              mountPath: /data/db
           env:
             - name: MONGO_INITDB_DATABASE
               value: "finanzas"
+          readinessProbe:
+            exec:
+              command:
+                - mongosh
+                - --eval
+                - "db.adminCommand('ping')"
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
       terminationGracePeriodSeconds: 30
   volumeClaimTemplates:
     - metadata:
         name: mongo-data
       spec:
         accessModes: ["ReadWriteOnce"]
-        storageClassName: "local-path"
+        storageClassName: "gp3"   # Usa 'gp2' si tu cluster EKS aún no tiene gp3
         resources:
           requests:
             storage: 5Gi

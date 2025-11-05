@@ -1,54 +1,69 @@
 version: '3.8'
 
 services:
-  # Base de datos MongoDB
+  # 🧩 Base de datos MongoDB
   mongodb:
-    image: mongo:latest
+    image: mongo:6.0
     container_name: mongodb_finanzas
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_DATABASE=finanzas
     ports:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
       - ./db/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
-    environment:
-      MONGO_INITDB_DATABASE: finanzas
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - finanzas-network
 
-  # Backend Node.js + Express
+  # ⚙️ Backend (Node.js + Express)
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: backend_finanzas
-    ports:
-      - "3001:3001"
+    restart: unless-stopped
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/finanzas
       - PORT=3001
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
+    ports:
+      - "3001:3001"
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     networks:
       - finanzas-network
-    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/transactions/balance"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
 
-  # Frontend React + Vite
+  # 🌐 Frontend (React + Vite)
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:3001/api
     container_name: frontend_finanzas
+    restart: unless-stopped
+    environment:
+      - VITE_API_URL=http://localhost:3001/api
     ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - "5173:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - finanzas-network
     stdin_open: true
     tty: true
-    restart: unless-stopped
 
 volumes:
   mongodb_data:
